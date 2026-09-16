@@ -1,0 +1,172 @@
+@import 'tailwindcss';
+
+@plugin '@tailwindcss/forms';
+
+/*
+ | Class-based dark mode rather than the media query, so the Settings screen
+ | can override the device preference. layouts/app.blade.php sets the class
+ | before first paint to avoid a flash of the wrong theme.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@source '../views';
+@source '../js';
+@source '../../app/View';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+/*
+ | SuperMart design tokens.
+ | Brand green reads as "grocery" and stays legible under the harsh lighting
+ | and low-quality screens a counter PC or budget phone tends to have.
+ */
+@theme {
+    --font-sans:
+        system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+        'Noto Sans', 'Noto Nastaliq Urdu', sans-serif;
+    --font-urdu: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif;
+
+    --color-brand-50: oklch(0.979 0.021 166.1);
+    --color-brand-100: oklch(0.95 0.052 163.1);
+    --color-brand-200: oklch(0.905 0.093 164.2);
+    --color-brand-300: oklch(0.845 0.143 164.9);
+    --color-brand-400: oklch(0.765 0.177 163.2);
+    --color-brand-500: oklch(0.696 0.17 162.5);
+    --color-brand-600: oklch(0.596 0.145 163.2);
+    --color-brand-700: oklch(0.508 0.118 165.6);
+    --color-brand-800: oklch(0.432 0.095 166.9);
+    --color-brand-900: oklch(0.378 0.077 168.9);
+    --color-brand-950: oklch(0.262 0.051 172.6);
+
+    /* Semantic colours used by badges, ledgers and variance figures. */
+    --color-money-in: oklch(0.596 0.145 163.2);
+    --color-money-out: oklch(0.577 0.245 27.325);
+    --color-warn: oklch(0.681 0.162 75.834);
+
+    /* The bottom tab bar height; page padding reserves exactly this. */
+    --spacing-tabbar: 4.25rem;
+}
+
+@layer base {
+    /*
+     | Hard-wire the numeric font features. Rupee amounts must line up
+     | column-to-column in ledgers and on printed receipts.
+     */
+    body {
+        font-variant-numeric: tabular-nums;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    [dir='rtl'] {
+        font-family: var(--font-urdu);
+    }
+
+    /* Alpine hides x-cloak elements until it has initialised. */
+    [x-cloak] {
+        display: none !important;
+    }
+}
+
+@utility tap-target {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+}
+
+/*
+ | The page entrance, used by the x-rise directive.
+ |
+ | This is a CSS animation rather than a scripted one on purpose. A moved
+ | element becomes the frame its `fixed` children are measured from, so a
+ | transform left behind on the main column would pin the till's payment sheet
+ | and its total bar to the page instead of the screen. `backwards` holds the
+ | starting state through the delay but leaves nothing behind at the end.
+ */
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@utility rise {
+    animation: rise 0.25s ease-out backwards;
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+}
+
+/*
+ | A slim scrollbar for panels that scroll inside the page — the sidebar and
+ | the bottom sheets. The chunky grey default is fine on a document; on a
+ | counter screen it reads as part of the furniture rather than the app.
+ */
+@utility scroll-slim {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-gray-300) transparent;
+
+    &::-webkit-scrollbar {
+        width: 0.5rem;
+        height: 0.5rem;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: var(--color-gray-300);
+        background-clip: content-box;
+        border: 1px solid transparent;
+        border-radius: 9999px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background-color: var(--color-gray-400);
+    }
+
+    &::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+
+    :where(.dark) & {
+        scrollbar-color: var(--color-gray-700) transparent;
+
+        &::-webkit-scrollbar-thumb {
+            background-color: var(--color-gray-700);
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+            background-color: var(--color-gray-600);
+        }
+    }
+}
+
+/* Keeps the tab bar clear of the iOS home indicator. */
+@utility pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@utility mb-safe {
+    margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/*
+ | Print rules. The A4 and thermal layouts opt in with .print-sheet;
+ | everything else in the chrome is suppressed.
+ */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    body {
+        background: #fff !important;
+        color: #000 !important;
+    }
+}
